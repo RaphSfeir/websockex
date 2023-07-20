@@ -500,7 +500,7 @@ defmodule WebSockex do
     module_misc = module_status(opt, state.module, pdict, state.module_state)
 
     [
-      {:header, 'Status for WebSockex process #{inspect(self())}'},
+      {:header, ~c"Status for WebSockex process #{inspect(self())}"},
       {:data,
        [
          {"Status", sys_state},
@@ -1078,6 +1078,7 @@ defmodule WebSockex do
   end
 
   defp do_terminate(reason, _parent, _debug, %{module: mod, module_state: mod_state}) do
+    require Logger
     mod.terminate(reason, mod_state)
 
     case reason do
@@ -1086,6 +1087,12 @@ defmodule WebSockex do
 
       {_, 1000, _} ->
         exit(:normal)
+
+      {%_{__exception__: true} = exception, trace} ->
+        Logger.error(Exception.format(:error, exception, trace))
+
+      %_{__exception__: true} = exception ->
+        Logger.error(Exception.format(:error, exception))
 
       _ ->
         exit(reason)
